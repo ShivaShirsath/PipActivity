@@ -14,6 +14,7 @@ import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
+import android.widget.TextView;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
@@ -38,6 +39,9 @@ public class PipActivity extends AppCompatActivity {
         
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pip);
+        
+        // Find the TextView reference
+        TextView helloText = findViewById(R.id.helloText);
         
         // Make the window transparent
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
@@ -133,7 +137,8 @@ public class PipActivity extends AppCompatActivity {
             // For Android 12+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 // Set controls timeout to zero - critical for hiding icons
-//                builder.setHideControlsTimeout(0);
+                // This is not necessary to hide controls as the user can still show them manually
+                // builder.setHideControlsTimeout(0);
                 
                 // Use official APIs to disable controls
                 builder.setAutoEnterEnabled(false)
@@ -226,7 +231,8 @@ public class PipActivity extends AppCompatActivity {
                 builder.setAspectRatio(BETTER_ASPECT_RATIO);
                 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-//                    builder.setHideControlsTimeout(0);
+                    // Not necessary here
+                    // builder.setHideControlsTimeout(0);
                 }
                 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {

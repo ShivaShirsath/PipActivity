@@ -6,6 +6,14 @@
     android:background="@android:color/black"
     tools:context=".PipActivity">
     
-    <!-- Content is intentionally empty to minimize UI elements -->
+    <TextView
+        android:id="@+id/helloText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Hello World"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
+        android:textStyle="bold" />
 
 </FrameLayout> 
