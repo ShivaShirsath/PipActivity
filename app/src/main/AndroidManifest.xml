@@ -23,9 +23,18 @@
         </activity>
         <activity
             android:name=".PipActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|keyboardHidden|keyboard|navigation|uiMode"
             android:supportsPictureInPicture="true"
-            android:screenOrientation="landscape"
+            android:documentLaunchMode="never"
+            android:theme="@style/PipTheme"
+            android:resizeableActivity="true"
+            android:taskAffinity=""
+            android:excludeFromRecents="true"
+            android:immersive="true"
+            android:showForAllUsers="false"
+            android:showOnLockScreen="false"
+            android:showWhenLocked="false"
+            android:turnScreenOn="false"
             android:launchMode="singleTask"
             android:exported="false" />
     </application>
