@@ -24,7 +24,6 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Add button click listener to navigate to PiP activity
         Button openPipButton = findViewById(R.id.openPipButton);
         openPipButton.setOnClickListener(new View.OnClickListener() {
             @Override

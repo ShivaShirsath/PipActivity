@@ -25,13 +25,11 @@ import java.util.ArrayList;
 
 public class PipActivity extends AppCompatActivity {
     
-    // Less extreme aspect ratio (4:3) for better usability while still small
     private static final Rational BETTER_ASPECT_RATIO = new Rational(4, 3);
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Request a transparent window with no decorations
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         requestWindowFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
         getWindow().requestFeature(Window.FEATURE_ACTIVITY_TRANSITIONS);
@@ -40,24 +38,18 @@ public class PipActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pip);
         
-        // Find the TextView reference
         TextView helloText = findViewById(R.id.helloText);
         
-        // Make the window transparent
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         
-        // Apply the most aggressive immersive mode possible
         applyAggressiveImmersiveMode();
         
-        // Hide action bar
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
         
-        // Force landscape orientation for better PiP appearance
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         
-        // Handle back button press to enter PiP mode
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -65,12 +57,10 @@ public class PipActivity extends AppCompatActivity {
             }
         });
         
-        // Auto-enter PiP mode after a short delay
         handler.postDelayed(this::enterPipMode, 300);
     }
     
     private void applyAggressiveImmersiveMode() {
-        // Use all available window flags to hide UI
         getWindow().addFlags(
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS |
@@ -81,31 +71,25 @@ public class PipActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS
         );
         
-        // Remove window decorations
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
         
-        // Make window transparent
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // For Android 11+, use the new WindowInsetsController
             Window window = getWindow();
             window.setDecorFitsSystemWindows(false);
             WindowInsetsController controller = window.getInsetsController();
             if (controller != null) {
-                // Hide all system bars
                 controller.hide(
                         WindowInsets.Type.statusBars() | 
                         WindowInsets.Type.navigationBars() | 
                         WindowInsets.Type.systemBars() | 
                         WindowInsets.Type.displayCutout());
                 
-                // Set behavior to ensure they stay hidden
                 controller.setSystemBarsBehavior(
                         WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
             }
         } else {
-            // For older Android versions
             View decorView = getWindow().getDecorView();
             int flags = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
@@ -114,7 +98,6 @@ public class PipActivity extends AppCompatActivity {
                     View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
                     View.SYSTEM_UI_FLAG_FULLSCREEN;
             
-            // Apply all flags to hide UI elements
             decorView.setSystemUiVisibility(flags);
         }
     }
@@ -125,30 +108,20 @@ public class PipActivity extends AppCompatActivity {
         }
         
         try {
-            // Try to disable system controls using reflection before entering PiP
             tryDisableSystemControlsWithReflection();
             
-            // Create a builder with better usability than before
             PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
             
-            // Use a more reasonable aspect ratio
             builder.setAspectRatio(BETTER_ASPECT_RATIO);
             
-            // For Android 12+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                // Set controls timeout to zero - critical for hiding icons
-                // This is not necessary to hide controls as the user can still show them manually
-                // builder.setHideControlsTimeout(0);
-                
-                // Use official APIs to disable controls
+
                 builder.setAutoEnterEnabled(false)
                        .setSeamlessResizeEnabled(true);
                 
-                // Set a minimal source rect hint
                 Rect sourceRect = new Rect(0, 0, 10, 10);
                 builder.setSourceRectHint(sourceRect);
                 
-                // Try reflection methods - critical for hiding the icon
                 Method[] methods = PictureInPictureParams.Builder.class.getDeclaredMethods();
                 for (Method method : methods) {
                     String methodName = method.getName();
@@ -158,21 +131,19 @@ public class PipActivity extends AppCompatActivity {
                         
                         try {
                             method.setAccessible(true);
-                            // Most methods need a boolean parameter, trying both true and false
                             if (method.getParameterTypes().length == 1 && 
                                 method.getParameterTypes()[0] == boolean.class) {
                                 
                                 if (methodName.contains("Show") || methodName.contains("Enable")) {
-                                    method.invoke(builder, false);  // For "show" methods, we want false
+                                    method.invoke(builder, false);  
                                 } else if (methodName.contains("Hide") || methodName.contains("Disable")) {
-                                    method.invoke(builder, true);   // For "hide" methods, we want true
+                                    method.invoke(builder, true);   
                                 }
                             }
                         } catch (Exception ignored) {}
                     }
                 }
                 
-                // Try direct field manipulation as well
                 Field[] fields = PictureInPictureParams.Builder.class.getDeclaredFields();
                 for (Field field : fields) {
                     String fieldName = field.getName();
@@ -184,25 +155,21 @@ public class PipActivity extends AppCompatActivity {
                             field.setAccessible(true);
                             if (field.getType() == boolean.class) {
                                 if (fieldName.contains("Show") || fieldName.contains("Enable")) {
-                                    field.set(builder, false);  // For "show" fields, we want false
+                                    field.set(builder, false);  
                                 } else if (fieldName.contains("Hide") || fieldName.contains("Disable")) {
-                                    field.set(builder, true);   // For "hide" fields, we want true
+                                    field.set(builder, true);   
                                 }
                             }
                         } catch (Exception ignored) {}
                     }
                 }
             } 
-            // For Android 9-11
             else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                // Empty actions list
                 builder.setActions(new ArrayList<>());
             }
             
-            // Enter PiP mode
             enterPictureInPictureMode(builder.build());
             
-            // Apply aggressive modifications right after entering PiP
             handler.postDelayed(() -> {
                 if (isInPictureInPictureMode()) {
                     tryDisableSystemControlsWithReflection();
@@ -210,7 +177,6 @@ public class PipActivity extends AppCompatActivity {
                 }
             }, 100);
             
-            // And again after a longer delay to ensure they stay hidden
             handler.postDelayed(() -> {
                 if (isInPictureInPictureMode()) {
                     tryDisableSystemControlsWithReflection();
@@ -231,8 +197,6 @@ public class PipActivity extends AppCompatActivity {
                 builder.setAspectRatio(BETTER_ASPECT_RATIO);
                 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    // Not necessary here
-                    // builder.setHideControlsTimeout(0);
                 }
                 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -246,7 +210,6 @@ public class PipActivity extends AppCompatActivity {
     
     private void tryDisableSystemControlsWithReflection() {
         try {
-            // Try to directly modify Window property
             Field mShouldShowSystemControls = getWindow().getClass()
                     .getDeclaredField("mShouldShowSystemControls");
             mShouldShowSystemControls.setAccessible(true);
@@ -254,14 +217,12 @@ public class PipActivity extends AppCompatActivity {
         } catch (Exception ignored) {}
         
         try {
-            // Try to directly modify Activity property
             Field mShowPictureInPictureMenu = getClass().getSuperclass()
                     .getDeclaredField("mShowPictureInPictureMenu");
             mShowPictureInPictureMenu.setAccessible(true);
             mShowPictureInPictureMenu.set(this, false);
         } catch (Exception ignored) {}
         
-        // Try to find and manipulate any control-related fields in window
         Field[] windowFields = getWindow().getClass().getDeclaredFields();
         for (Field field : windowFields) {
             String fieldName = field.getName();
@@ -284,14 +245,11 @@ public class PipActivity extends AppCompatActivity {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
         
         if (isInPictureInPictureMode) {
-            // Re-apply all methods to hide UI
             applyAggressiveImmersiveMode();
             tryDisableSystemControlsWithReflection();
             
-            // Update PiP params again
             updatePipParams();
             
-            // Schedule one more attempt after a delay
             handler.postDelayed(() -> {
                 if (isInPictureInPictureMode()) {
                     tryDisableSystemControlsWithReflection();
@@ -304,7 +262,6 @@ public class PipActivity extends AppCompatActivity {
     @Override
     protected void onUserLeaveHint() {
         super.onUserLeaveHint();
-        // Auto-enter PiP mode when user leaves
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isInPictureInPictureMode()) {
             enterPipMode();
         }
